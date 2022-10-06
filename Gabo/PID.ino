@@ -14,8 +14,16 @@ int ComuPC=7;
 
 //Valores
 int Temperatura;
+float R1 = 100000;              // resistencia fija del divisor de tension 
+float logR2, R2, TemperaturaX;
+float c1 = 0.6895404624e-03, c2 = 2.892045445e-04, c3 = 0.01028622639e-07;
+// http://www.thinksrs.com/downloads/programs/Therm%20Calc/NTCCalibrator/NTCcalculator.htm
+
+
 int Humedad;
+int HumedadX;
 int Referencia;
+int ReferenciaX;
 int Error;
 
 //LCD PCD8544
@@ -53,19 +61,40 @@ void setup() {
 
 void loop() {  
   display.setCursor(0,0);
-  display.print("T.Ref:");
-  display.println(Referencia);
-  display.print("T.Term:");
-  display.println(Temperatura);
-  display.print("Humedad:");
-  display.println(Humedad);
+  display.print("T.Ref: ");
+  display.println(ReferenciaX);
+  display.print("T.Term: ");
+  display.println(TemperaturaX);
+  display.print("Humedad: ");
+  display.println(HumedadX);
   display.display();
   display.clearDisplay();
 
 
   Temperatura = analogRead(A1);
+  R2 = R1 * (1023.0 / (float)Temperatura - 1.0);
+  logR2 = log(R2);
+  TemperaturaX = (1.0 / (c1 + c2*logR2 + c3*logR2*logR2*logR2));
+  TemperaturaX = TemperaturaX - 273.15;
+
   Humedad = analogRead(A4);
+  HumedadX = map(Humedad, 0, 1023, 0, 100);
   Referencia = analogRead(A0);
+  ReferenciaX = map(Referencia, 0, 1023, 0, 100);
+
+  if(Temperatura<30){
+    digitalWrite(LEDblue, HIGH);
+    digitalWrite(LEDred, LOW);
+  }
+  else if(Temperatura>45){
+    digitalWrite(LEDblue, LOW);
+    digitalWrite(LEDred, HIGH);
+  }
+  else if(30<Temperatura<45){
+    digitalWrite(LEDblue, LOW);
+    digitalWrite(LEDred, LOW);
+  }
+
 
   //Controlador PID
   Error = Referencia-Temperatura;
