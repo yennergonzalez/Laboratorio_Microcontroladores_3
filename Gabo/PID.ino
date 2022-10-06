@@ -80,15 +80,15 @@ void loop() {
   Referencia = analogRead(A0);
   ReferenciaX = map(Referencia, 0, 1023, 0, 100);
 
-  if(Temperatura<30){
+  if(TemperaturaX<30){
     digitalWrite(LEDblue, HIGH);
     digitalWrite(LEDred, LOW);
   }
-  else if(Temperatura>45){
+  else if(TemperaturaX>45){
     digitalWrite(LEDblue, LOW);
     digitalWrite(LEDred, HIGH);
   }
-  else if(30<Temperatura<45){
+  else if(30<TemperaturaX<45){
     digitalWrite(LEDblue, LOW);
     digitalWrite(LEDred, LOW);
   }
