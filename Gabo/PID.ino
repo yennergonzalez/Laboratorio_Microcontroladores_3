@@ -24,6 +24,7 @@ int Humedad;
 int HumedadX;
 int Referencia;
 int ReferenciaX;
+int SControl;
 int Error;
 
 //LCD PCD8544
@@ -33,11 +34,6 @@ int Error;
 // pin X - LCD chip select (CS)
 // pin X - LCD reset (RST)
 Adafruit_PCD8544 display = Adafruit_PCD8544(4, 5, 6, 8, 9);
-#define NUMFLAKES 10
-#define XPOS 0
-#define YPOS 1
-#define DELTAY 2
-
 
 void setup() {
   Serial.begin(9600);
@@ -63,6 +59,8 @@ void loop() {
   display.setCursor(0,0);
   display.print("T.Ref: ");
   display.println(ReferenciaX);
+  display.print("S.Ctrl: ");
+  display.println(SControl);
   display.print("T.Term: ");
   display.println(TemperaturaX);
   display.print("Humedad: ");
@@ -97,5 +95,5 @@ void loop() {
 
 
   //Controlador PID
-  Error = Referencia-Temperatura;
+  Error = ReferenciaX-TemperaturaX;
 }
