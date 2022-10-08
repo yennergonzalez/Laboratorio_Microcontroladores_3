@@ -6,6 +6,7 @@
 
 //Librerias
 #include <Adafruit_PCD8544.h>
+#include <PID_v1.h>
 
 //Pines
 int LEDblue=13;
@@ -15,7 +16,7 @@ int ComuPC=7;
 //Valores
 int Temperatura;
 float R1 = 100000;              // resistencia fija del divisor de tension 
-float logR2, R2, TemperaturaX;
+double logR2, R2, TemperaturaX;
 float c1 = 0.6895404624e-03, c2 = 2.892045445e-04, c3 = 0.01028622639e-07;
 // http://www.thinksrs.com/downloads/programs/Therm%20Calc/NTCCalibrator/NTCcalculator.htm
 
@@ -35,6 +36,13 @@ int Error;
 // pin X - LCD reset (RST)
 Adafruit_PCD8544 display = Adafruit_PCD8544(4, 5, 6, 8, 9);
 
+
+// PID
+
+// Variables PID
+double Ref_PID, SControl_PID, Temp_PID;
+PID pid(&Temp_PID, &SControl_PID, &Ref_PID, 2,5,1, DIRECT);
+
 void setup() {
   Serial.begin(9600);
   Serial.println("PCD test");
@@ -53,6 +61,13 @@ void setup() {
   pinMode(LEDblue, OUTPUT);
   pinMode(LEDred, OUTPUT);
   pinMode(ComuPC, INPUT);
+
+
+  //Inicializa control PID
+  Temp_PID = analogRead(A1)/4;
+  Ref_PID = analogRead(A0)/4;
+  pid.SetMode(AUTOMATIC); 
+
 }
 
 void loop() {  
@@ -95,5 +110,8 @@ void loop() {
 
 
   //Controlador PID
-  Error = ReferenciaX-TemperaturaX;
+  Temp_PID = analogRead(A1)/4;
+  Ref_PID = analogRead(A0)/4;
+  pid.Compute();
+  analogWrite(3, SControl_PID);
 }
