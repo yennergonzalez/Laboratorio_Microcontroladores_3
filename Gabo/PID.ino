@@ -8,10 +8,33 @@
 #include <Adafruit_PCD8544.h>
 #include <PID_v1.h>
 
+
+// --- Decalracion Variables Globales ---
+
 //Pines
-int LEDblue=13;
-int LEDred=12;
-int ComuPC=7;
+
+/* Pinout:
+D0-D1: Comunicacion Serial    DIGITAL - OUTPUT
+D3: Switch Comunicacion PC    DIGITAL - INPUT
+D4-D11: Salida PID            DIGITAL - OUTPUT
+D12-D13: LED_R - LED_A        DIGITAL - OUTPUT
+A0: Temp_Ref                  ANALOG  - INPUT
+A1: Temp_Sense                ANALOG  - INPUT
+A2: Humedad                   ANALOG  - INPUT 
+A3-A5: Control Pantalla       DIGITAL - OUTPUT
+*/
+
+int ComuRX    = 0;
+int ComuTx    = 1;
+int EnableTx  = 2;
+int LEDred    = 12;
+int LEDblue   = 13;
+int SCLK      = 17;
+int DIN       = 18;
+int DCS       = 19;
+int CS        = 11;  // CS y RST no se usan por lo que se define como 2 pero no se conectaran luego.
+int RST       = 11;
+
 
 //Valores
 int Temperatura;
@@ -34,7 +57,7 @@ int Error;
 // pin 6 - Data/Command select (D/C)
 // pin X - LCD chip select (CS)
 // pin X - LCD reset (RST)
-Adafruit_PCD8544 display = Adafruit_PCD8544(4, 5, 6, 8, 9);
+Adafruit_PCD8544 display = Adafruit_PCD8544(SCLK, DIN, DCS, CS, RST);
 
 
 // PID
@@ -42,6 +65,8 @@ Adafruit_PCD8544 display = Adafruit_PCD8544(4, 5, 6, 8, 9);
 // Variables PID
 double Ref_PID, SControl_PID, Temp_PID;
 PID pid(&Temp_PID, &SControl_PID, &Ref_PID, 2,5,1, DIRECT);
+
+// --- Set Up ---
 
 void setup() {
   Serial.begin(9600);
@@ -60,15 +85,16 @@ void setup() {
 
   pinMode(LEDblue, OUTPUT);
   pinMode(LEDred, OUTPUT);
-  pinMode(ComuPC, INPUT);
+  pinMode(EnableTx, INPUT);
 
 
   //Inicializa control PID
   Temp_PID = analogRead(A1)/4;
   Ref_PID = analogRead(A0)/4;
   pid.SetMode(AUTOMATIC); 
-
 }
+
+// --- Loop ---
 
 void loop() {  
   display.setCursor(0,0);
@@ -90,10 +116,10 @@ void loop() {
   TemperaturaX = (1.0 / (c1 + c2*logR2 + c3*logR2*logR2*logR2));
   TemperaturaX = TemperaturaX - 273.15;
 
-  Humedad = analogRead(A4);
+  Humedad = analogRead(A2);
   HumedadX = map(Humedad, 0, 1023, 0, 100);
   Referencia = analogRead(A0);
-  ReferenciaX = map(Referencia, 0, 1023, 0, 100);
+  ReferenciaX = map(Referencia, 0, 1023, 0, 80);
 
   if(TemperaturaX<30){
     digitalWrite(LEDblue, HIGH);
@@ -113,5 +139,22 @@ void loop() {
   Temp_PID = analogRead(A1)/4;
   Ref_PID = analogRead(A0)/4;
   pid.Compute();
-  analogWrite(3, SControl_PID);
+  
+  Serial.begin(57600);
+  // Se convierte de double a int y se mapea de int de 32 bits a 8 bits 
+  SControl = (int)SControl_PID;
+  //SControl = map((int)SControl_PID,0, 65445, 0,255);
+  Serial.print(sizeof(SControl));
+// Se ponen en los pines D4-D11 la salida del PID representada en 8 bits
+  for (int i = 0; i < 8; i++)
+  {
+    if (bitRead(SControl, i) == 0)
+    {
+      digitalWrite(i+3, LOW);
+    }
+    else
+    {
+      digitalWrite(i+4, HIGH);
+    }
+  }  
 }
