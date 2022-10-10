@@ -41,6 +41,7 @@ int Temperatura;
 float R1 = 100000;              // resistencia fija del divisor de tension 
 double logR2, R2, TemperaturaX;
 float c1 = 0.6895404624e-03, c2 = 2.892045445e-04, c3 = 0.01028622639e-07;
+// Los parámetros se obtuvieron en el siguiente enlace:
 // http://www.thinksrs.com/downloads/programs/Therm%20Calc/NTCCalibrator/NTCcalculator.htm
 
 
@@ -109,6 +110,15 @@ void loop() {
   display.display();
   display.clearDisplay();
 
+  Serial.print("T.Ref: ");
+  Serial.println(ReferenciaX);
+  Serial.print("S.Ctrl: ");
+  Serial.println(SControl);
+  Serial.print("T.Term: ");
+  Serial.println(TemperaturaX);
+  Serial.print("Humedad: ");
+  Serial.println(HumedadX);
+
 
   Temperatura = analogRead(A1);
   R2 = R1 * (1023.0 / (float)Temperatura - 1.0);
@@ -140,11 +150,11 @@ void loop() {
   Ref_PID = analogRead(A0)/4;
   pid.Compute();
   
-  Serial.begin(57600);
+  //Serial.begin(57600);
   // Se convierte de double a int y se mapea de int de 32 bits a 8 bits 
   SControl = (int)SControl_PID;
   //SControl = map((int)SControl_PID,0, 65445, 0,255);
-  Serial.print(sizeof(SControl));
+  //Serial.print(sizeof(SControl));
 // Se ponen en los pines D4-D11 la salida del PID representada en 8 bits
   for (int i = 0; i < 8; i++)
   {
