@@ -44,7 +44,6 @@ float c1 = 0.6895404624e-03, c2 = 2.892045445e-04, c3 = 0.01028622639e-07;
 // Los parámetros se obtuvieron en el siguiente enlace:
 // http://www.thinksrs.com/downloads/programs/Therm%20Calc/NTCCalibrator/NTCcalculator.htm
 
-
 int Humedad;
 int HumedadX;
 int Referencia;
@@ -97,7 +96,8 @@ void setup() {
 
 // --- Loop ---
 
-void loop() {  
+void loop() {
+  //Mostrar los resultados en la pantalla  
   display.setCursor(0,0);
   display.print("T.Ref: ");
   display.println(ReferenciaX);
@@ -110,27 +110,32 @@ void loop() {
   display.display();
   display.clearDisplay();
 
-  Serial.print("T.Ref: ");
-  Serial.println(ReferenciaX);
-  Serial.print("S.Ctrl: ");
-  Serial.println(SControl);
-  Serial.print("T.Term: ");
-  Serial.println(TemperaturaX);
-  Serial.print("Humedad: ");
-  Serial.println(HumedadX);
-
-
+  // Switch para habilitar la comunicación con la PC
+  if(digitalRead(EnableTx)==LOW){
+    Serial.print("T.Ref: ");
+    Serial.println(ReferenciaX);
+    Serial.print("S.Ctrl: ");
+    Serial.println(SControl);
+    Serial.print("T.Term: ");
+    Serial.println(TemperaturaX);
+    Serial.print("Humedad: ");
+    Serial.println(HumedadX);
+  }
+  
+  //Medición de temperatura con el termistor
   Temperatura = analogRead(A1);
   R2 = R1 * (1023.0 / (float)Temperatura - 1.0);
   logR2 = log(R2);
   TemperaturaX = (1.0 / (c1 + c2*logR2 + c3*logR2*logR2*logR2));
   TemperaturaX = TemperaturaX - 273.15;
 
+  //Medición de humedad y valor de temperatura de referencia (fuente de 5V y potenciómetro respectivamente)
   Humedad = analogRead(A2);
   HumedadX = map(Humedad, 0, 1023, 0, 100);
   Referencia = analogRead(A0);
   ReferenciaX = map(Referencia, 0, 1023, 0, 80);
 
+  //Alarma con los LEDs rojo y azul
   if(TemperaturaX<30){
     digitalWrite(LEDblue, HIGH);
     digitalWrite(LEDred, LOW);

@@ -11,7 +11,7 @@ fileName="Arduino_data.csv" #name of the CSV file generated
 ser = serial.Serial(arduino_port, baud)
 file = open(fileName, "w")
 
-samples = 100 #how many samples to collect
+samples = 1000 #how many samples to collect
 print_labels = False
 line = 0 #start at 0 because our header is 0 (not real data)
 
